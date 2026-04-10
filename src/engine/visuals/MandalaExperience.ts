@@ -10,6 +10,14 @@ import mandalaFragment from "../shaders/mandala.fragment.glsl?raw";
 
 type Orbiter = { mesh: Mesh; material: StandardMaterial; ringIndex: number; baseRadius: number; speed: number; seed: number };
 
+export interface VisualOverrides {
+  bloomOverride?: number;    // 0..2
+  noiseOverride?: number;    // 0..3
+  speedOverride?: number;    // 0.1..3
+  petalOverride?: number;    // 3..24
+  rainbowFlood: number;      // 0..1
+}
+
 export class MandalaExperience {
   private readonly scene: Scene;
   private readonly camera: ArcRotateCamera;
@@ -28,6 +36,8 @@ export class MandalaExperience {
   private time = 0;
   private pulse = 0;
   private quality: QualityTier = "high";
+  private rainbow = 0;
+  private rainbowTarget = 0;
 
   constructor(scene: Scene, initialQuality: QualityTier = "high") {
     this.scene = scene;
@@ -50,7 +60,8 @@ export class MandalaExperience {
       attributes: ["position", "uv"],
       uniforms: ["worldViewProjection", "uTime", "uAspect", "uPetalCount", "uRadiusOuter", "uRadiusInner",
         "uRotation", "uPetalSharpness", "uSymmetryBreak", "uNoiseScale", "uGlitch", "uBloom",
-        "uEnergy", "uCoherence", "uTension", "uPulse", "uSeed", "uPrimaryColor", "uSecondaryColor", "uVoidColor"]
+        "uEnergy", "uCoherence", "uTension", "uPulse", "uSeed", "uPrimaryColor", "uSecondaryColor", "uVoidColor",
+        "uRainbow", "uSpeed"]
     });
     this.shader.backFaceCulling = false;
     this.shader.disableDepthWrite = true;
@@ -137,28 +148,53 @@ export class MandalaExperience {
 
   triggerPulse(): void { this.pulse = 1; }
 
-  applyState(state: MandalaVisualState, summary: PeerSummary, peers: Peer[], dt: number): void {
+  triggerRainbowFlood(): void {
+    this.rainbowTarget = 1;
+    this.pulse = Math.max(this.pulse, 0.7);
+  }
+
+  setRainbowLevel(level: number): void {
+    this.rainbowTarget = clamp01(level);
+  }
+
+  applyState(state: MandalaVisualState, summary: PeerSummary, peers: Peer[], dt: number, overrides?: VisualOverrides): void {
     this.time += dt;
     this.pulse = Math.max(0, this.pulse - dt * 0.9);
+
+    // Rainbow decay / approach
+    const rainbowSpeed = this.rainbowTarget > this.rainbow ? 3.5 : 0.6;
+    this.rainbow += (this.rainbowTarget - this.rainbow) * dt * rainbowSpeed;
+    if (this.rainbowTarget > 0 && this.rainbow > 0.95) {
+      this.rainbowTarget = Math.max(0, this.rainbowTarget - dt * 0.15);
+    }
+
     const engine = this.scene.getEngine();
     const aspect = engine.getRenderWidth(true) / Math.max(1, engine.getRenderHeight(true));
 
+    const speed = overrides?.speedOverride ?? 1.0;
+    const petalCount = overrides?.petalOverride ?? state.petalCount;
+    const noiseScale = overrides?.noiseOverride ?? (0.8 + state.tension * 1.6);
+    const bloomVal = overrides?.bloomOverride ?? state.bloom;
+    const rainbowVal = Math.max(this.rainbow, overrides?.rainbowFlood ?? 0);
+
     this.shader.setFloat("uTime", this.time);
     this.shader.setFloat("uAspect", aspect);
-    this.shader.setFloat("uPetalCount", state.petalCount);
+    this.shader.setFloat("uPetalCount", petalCount);
     this.shader.setFloat("uRadiusOuter", 1.02 + state.aura * 0.28);
     this.shader.setFloat("uRadiusInner", 0.18 + state.symmetry * 0.19);
-    this.shader.setFloat("uRotation", state.rotation * 0.34 + this.time * 0.08);
+    this.shader.setFloat("uRotation", state.rotation * 0.34 + this.time * 0.08 * speed);
     this.shader.setFloat("uPetalSharpness", clamp01(0.18 + state.tension * 0.82));
     this.shader.setFloat("uSymmetryBreak", clamp01(1 - state.symmetry));
-    this.shader.setFloat("uNoiseScale", 0.8 + state.tension * 1.6);
+    this.shader.setFloat("uNoiseScale", noiseScale);
     this.shader.setFloat("uGlitch", clamp01(state.glitch));
-    this.shader.setFloat("uBloom", clamp01(state.bloom));
+    this.shader.setFloat("uBloom", clamp01(bloomVal));
     this.shader.setFloat("uEnergy", clamp01(state.energy));
     this.shader.setFloat("uCoherence", clamp01(state.coherence));
     this.shader.setFloat("uTension", clamp01(state.tension));
     this.shader.setFloat("uPulse", clamp01(state.pulse + this.pulse));
     this.shader.setFloat("uSeed", state.seed);
+    this.shader.setFloat("uRainbow", clamp01(rainbowVal));
+    this.shader.setFloat("uSpeed", speed);
     this.shader.setColor3("uPrimaryColor", state.primaryColor);
     this.shader.setColor3("uSecondaryColor", state.secondaryColor);
     this.shader.setColor3("uVoidColor", state.voidColor);
@@ -169,39 +205,49 @@ export class MandalaExperience {
     this.scene.clearColor.a = 1;
 
     this.knot.position.y = Math.sin(this.time * 0.2) * 0.03;
-    this.updateEmissiveMaterial(this.knot.material as StandardMaterial, state.primaryColor, 1.25 + state.bloom * 1.2);
-    this.updateEmissiveMaterial(this.ringInner.material as StandardMaterial, state.secondaryColor, 1.1 + state.aura);
-    this.updateEmissiveMaterial(this.ringOuter.material as StandardMaterial, state.primaryColor, 0.8 + state.pulse * 1.3);
-    this.knot.scaling.setAll(1 + state.aura * 0.12 + state.pulse * 0.05);
-    this.ringInner.scaling.setAll(1 + state.bloom * 0.08);
-    this.ringOuter.scaling.setAll(1 + state.energy * 0.05 + state.pulse * 0.05);
+    this.updateEmissiveMaterial(this.knot.material as StandardMaterial, state.primaryColor, 1.25 + bloomVal * 1.2 + rainbowVal * 0.5);
+    this.updateEmissiveMaterial(this.ringInner.material as StandardMaterial, state.secondaryColor, 1.1 + state.aura + rainbowVal * 0.4);
+    this.updateEmissiveMaterial(this.ringOuter.material as StandardMaterial, state.primaryColor, 0.8 + state.pulse * 1.3 + rainbowVal * 0.3);
+    this.knot.scaling.setAll(1 + state.aura * 0.12 + state.pulse * 0.05 + rainbowVal * 0.08);
+    this.ringInner.scaling.setAll(1 + bloomVal * 0.08 + rainbowVal * 0.04);
+    this.ringOuter.scaling.setAll(1 + state.energy * 0.05 + state.pulse * 0.05 + rainbowVal * 0.06);
 
-    this.updateOrbiters(state, peers);
-    this.updateDust(state, summary);
-    this.updatePipeline(state);
+    this.updateOrbiters(state, peers, rainbowVal);
+    this.updateDust(state, summary, rainbowVal);
+    this.updatePipeline(state, bloomVal, rainbowVal);
   }
 
-  private updatePipeline(state: MandalaVisualState): void {
-    this.pipeline.imageProcessing.exposure = 1.0 + state.energy * 0.16;
-    this.pipeline.imageProcessing.contrast = 1.08 + state.coherence * 0.12;
-    this.pipeline.bloomThreshold = 0.42 - state.pulse * 0.04;
-    this.pipeline.bloomWeight = this.quality === "high" ? 0.3 + state.bloom * 0.1
-      : this.quality === "medium" ? 0.24 + state.bloom * 0.08 : 0.16 + state.bloom * 0.05;
-    this.pipeline.imageProcessing.vignetteWeight = 1.25 + state.tension * 0.5;
+  private updatePipeline(state: MandalaVisualState, bloom: number, rainbow: number): void {
+    this.pipeline.imageProcessing.exposure = 1.0 + state.energy * 0.16 + rainbow * 0.2;
+    this.pipeline.imageProcessing.contrast = 1.08 + state.coherence * 0.12 + rainbow * 0.08;
+    this.pipeline.bloomThreshold = 0.42 - state.pulse * 0.04 - rainbow * 0.1;
+    this.pipeline.bloomWeight = this.quality === "high" ? 0.3 + bloom * 0.1 + rainbow * 0.15
+      : this.quality === "medium" ? 0.24 + bloom * 0.08 + rainbow * 0.1 : 0.16 + bloom * 0.05 + rainbow * 0.06;
+    this.pipeline.imageProcessing.vignetteWeight = 1.25 + state.tension * 0.5 - rainbow * 0.3;
     if (this.pipeline.chromaticAberrationEnabled) {
-      this.pipeline.chromaticAberration.aberrationAmount = this.quality === "high" ? 5 + state.tension * 8 : 3 + state.tension * 4;
+      this.pipeline.chromaticAberration.aberrationAmount = (this.quality === "high" ? 5 + state.tension * 8 : 3 + state.tension * 4) + rainbow * 6;
     }
   }
 
-  private updateDust(state: MandalaVisualState, summary: PeerSummary): void {
-    this.dust.emitRate = (this.quality === "high" ? 120 : this.quality === "medium" ? 70 : 35) + state.energy * 170 + state.pulse * 120;
+  private updateDust(state: MandalaVisualState, summary: PeerSummary, rainbow: number): void {
+    this.dust.emitRate = (this.quality === "high" ? 120 : this.quality === "medium" ? 70 : 35)
+      + state.energy * 170 + state.pulse * 120 + rainbow * 200;
     this.dustColor1.r = state.primaryColor.r; this.dustColor1.g = state.primaryColor.g; this.dustColor1.b = state.primaryColor.b; this.dustColor1.a = 0.92;
     this.dustColor2.r = state.secondaryColor.r; this.dustColor2.g = state.secondaryColor.g; this.dustColor2.b = state.secondaryColor.b; this.dustColor2.a = 0.78;
-    this.dust.minSize = 0.012 + state.energy * 0.006;
-    this.dust.maxSize = 0.05 + state.pulse * 0.02 + summary.resonance * 0.01;
+
+    // Rainbow tints dust
+    if (rainbow > 0.1) {
+      const hue = (this.time * 0.3) % 1;
+      this.dustColor1.r += rainbow * Math.sin(hue * 6.28) * 0.5;
+      this.dustColor1.g += rainbow * Math.sin((hue + 0.33) * 6.28) * 0.5;
+      this.dustColor1.b += rainbow * Math.sin((hue + 0.66) * 6.28) * 0.5;
+    }
+
+    this.dust.minSize = 0.012 + state.energy * 0.006 + rainbow * 0.008;
+    this.dust.maxSize = 0.05 + state.pulse * 0.02 + summary.resonance * 0.01 + rainbow * 0.015;
   }
 
-  private updateOrbiters(state: MandalaVisualState, peers: Peer[]): void {
+  private updateOrbiters(state: MandalaVisualState, peers: Peer[], rainbow: number): void {
     for (let i = 0; i < this.orbiters.length; i++) {
       const orb = this.orbiters[i];
       const peer = peers[i % peers.length];
@@ -210,13 +256,23 @@ export class MandalaExperience {
       orb.mesh.position.x = Math.cos(angle) * radius;
       orb.mesh.position.y = Math.sin(angle) * radius;
       orb.mesh.position.z = -0.34 + Math.sin(angle * 1.6 + peer.hue * 4) * 0.14;
-      const scale = 0.04 + peer.energy * 0.07 + state.pulse * 0.03;
+      const scale = 0.04 + peer.energy * 0.07 + state.pulse * 0.03 + rainbow * 0.02;
       orb.mesh.scaling.setAll(scale);
       const mix = clamp01(peer.coherence * 0.8 + peer.hue * 0.2);
-      orb.material.emissiveColor.r = (state.primaryColor.r + (state.secondaryColor.r - state.primaryColor.r) * mix) * (0.9 + peer.energy * 1.6 + state.bloom * 0.7);
-      orb.material.emissiveColor.g = (state.primaryColor.g + (state.secondaryColor.g - state.primaryColor.g) * mix) * (0.9 + peer.energy * 1.6 + state.bloom * 0.7);
-      orb.material.emissiveColor.b = (state.primaryColor.b + (state.secondaryColor.b - state.primaryColor.b) * mix) * (0.9 + peer.energy * 1.6 + state.bloom * 0.7);
-      orb.material.alpha = 0.35 + peer.coherence * 0.55;
+      const boost = 0.9 + peer.energy * 1.6 + state.bloom * 0.7 + rainbow * 0.8;
+      orb.material.emissiveColor.r = (state.primaryColor.r + (state.secondaryColor.r - state.primaryColor.r) * mix) * boost;
+      orb.material.emissiveColor.g = (state.primaryColor.g + (state.secondaryColor.g - state.primaryColor.g) * mix) * boost;
+      orb.material.emissiveColor.b = (state.primaryColor.b + (state.secondaryColor.b - state.primaryColor.b) * mix) * boost;
+
+      // Rainbow tint per orbiter
+      if (rainbow > 0.1) {
+        const hue = (i / this.orbiters.length + this.time * 0.15) % 1;
+        orb.material.emissiveColor.r += rainbow * 0.4 * Math.max(0, Math.sin(hue * 6.28));
+        orb.material.emissiveColor.g += rainbow * 0.4 * Math.max(0, Math.sin((hue + 0.33) * 6.28));
+        orb.material.emissiveColor.b += rainbow * 0.4 * Math.max(0, Math.sin((hue + 0.66) * 6.28));
+      }
+
+      orb.material.alpha = 0.35 + peer.coherence * 0.55 + rainbow * 0.1;
     }
   }
 
