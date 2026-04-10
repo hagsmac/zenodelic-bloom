@@ -1,96 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 230 60% 3%;
+    --foreground: 220 30% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 230 40% 6%;
+    --card-foreground: 220 30% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 230 40% 6%;
+    --popover-foreground: 220 30% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 230 65% 65%;
+    --primary-foreground: 230 60% 3%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 168 60% 55%;
+    --secondary-foreground: 230 60% 3%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 230 25% 12%;
+    --muted-foreground: 220 15% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 280 55% 65%;
+    --accent-foreground: 230 60% 3%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 230 20% 15%;
+    --input: 230 20% 15%;
+    --ring: 230 65% 65%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Zenodelic tokens */
+    --zen-void: 230 60% 3%;
+    --zen-glow-primary: 230 65% 65%;
+    --zen-glow-secondary: 168 60% 55%;
+    --zen-glow-accent: 280 55% 65%;
+    --zen-surface: 230 30% 8%;
+    --zen-surface-elevated: 230 25% 12%;
+    --zen-text-bright: 220 30% 95%;
+    --zen-text-dim: 220 15% 50%;
+    --zen-glass: 230 40% 6%;
+    --zen-glass-border: 220 20% 18%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 230 40% 6%;
+    --sidebar-foreground: 220 30% 92%;
+    --sidebar-primary: 230 65% 65%;
+    --sidebar-primary-foreground: 230 60% 3%;
+    --sidebar-accent: 230 25% 12%;
+    --sidebar-accent-foreground: 220 30% 92%;
+    --sidebar-border: 230 20% 15%;
+    --sidebar-ring: 230 65% 65%;
   }
 }
 
@@ -101,5 +69,89 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .zen-glass {
+    background: hsla(var(--zen-glass), 0.48);
+    border: 1px solid hsla(var(--zen-glass-border), 0.22);
+    backdrop-filter: blur(20px) saturate(1.4);
+    box-shadow:
+      0 18px 50px hsla(var(--zen-void), 0.6),
+      inset 0 1px 0 hsla(var(--zen-glow-primary), 0.06);
+  }
+
+  .zen-glow-text {
+    text-shadow: 0 0 24px hsla(var(--zen-glow-primary), 0.4);
+  }
+
+  .zen-stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--zen-text-dim));
+  }
+
+  .zen-stat-value {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: hsl(var(--zen-text-bright));
+  }
+
+  .zen-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--zen-text-dim));
+  }
+
+  .zen-mode-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: hsl(var(--zen-text-bright));
+    text-shadow: 0 0 32px hsla(var(--zen-glow-primary), 0.35);
+  }
+
+  .zen-pill-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsla(var(--zen-surface-elevated), 0.6);
+    border: 1px solid hsla(var(--zen-glass-border), 0.18);
+    color: hsl(var(--zen-text-bright));
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .zen-pill-btn:hover {
+    background: hsla(var(--zen-glow-primary), 0.15);
+    border-color: hsla(var(--zen-glow-primary), 0.35);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px hsla(var(--zen-glow-primary), 0.2);
+  }
+
+  .zen-pill-btn:active {
+    transform: translateY(0);
+  }
+
+  .zen-pill-btn-accent {
+    background: hsla(var(--zen-glow-secondary), 0.12);
+    border-color: hsla(var(--zen-glow-secondary), 0.25);
+  }
+
+  .zen-pill-btn-accent:hover {
+    background: hsla(var(--zen-glow-secondary), 0.22);
+    border-color: hsla(var(--zen-glow-secondary), 0.45);
+    box-shadow: 0 4px 16px hsla(var(--zen-glow-secondary), 0.2);
   }
 }
