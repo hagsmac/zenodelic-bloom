@@ -41,6 +41,10 @@
     --zen-glow-primary: 230 65% 65%;
     --zen-glow-secondary: 168 60% 55%;
     --zen-glow-accent: 280 55% 65%;
+    --zen-glow-rainbow: linear-gradient(135deg,
+      hsl(0 85% 65%), hsl(30 90% 60%), hsl(55 85% 55%),
+      hsl(130 65% 50%), hsl(200 75% 55%), hsl(260 70% 60%),
+      hsl(310 65% 58%));
     --zen-surface: 230 30% 8%;
     --zen-surface-elevated: 230 25% 12%;
     --zen-text-bright: 220 30% 95%;
@@ -75,21 +79,22 @@
 
 @layer utilities {
   .zen-glass {
-    background: hsla(var(--zen-glass), 0.48);
-    border: 1px solid hsla(var(--zen-glass-border), 0.22);
-    backdrop-filter: blur(20px) saturate(1.4);
+    background: hsla(var(--zen-glass), 0.52);
+    border: 1px solid hsla(var(--zen-glass-border), 0.18);
+    backdrop-filter: blur(24px) saturate(1.5);
     box-shadow:
-      0 18px 50px hsla(var(--zen-void), 0.6),
-      inset 0 1px 0 hsla(var(--zen-glow-primary), 0.06);
+      0 20px 60px hsla(var(--zen-void), 0.7),
+      0 0 1px hsla(var(--zen-glow-primary), 0.15),
+      inset 0 1px 0 hsla(var(--zen-glow-primary), 0.05);
   }
 
   .zen-glow-text {
-    text-shadow: 0 0 24px hsla(var(--zen-glow-primary), 0.4);
+    text-shadow: 0 0 20px hsla(var(--zen-glow-primary), 0.5);
   }
 
   .zen-stat-label {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: hsl(var(--zen-text-dim));
@@ -97,61 +102,198 @@
 
   .zen-stat-value {
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: hsl(var(--zen-text-bright));
+    transition: color 0.3s ease;
   }
 
   .zen-eyebrow {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.22em;
+    font-size: 0.6rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
     color: hsl(var(--zen-text-dim));
   }
 
   .zen-mode-title {
     font-family: var(--font-display);
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     color: hsl(var(--zen-text-bright));
-    text-shadow: 0 0 32px hsla(var(--zen-glow-primary), 0.35);
+    text-shadow: 0 0 36px hsla(var(--zen-glow-primary), 0.3);
   }
 
+  .zen-help-text {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    color: hsla(var(--zen-text-dim), 0.6);
+  }
+
+  /* Pill buttons */
   .zen-pill-btn {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     letter-spacing: 0.06em;
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.9rem;
     border-radius: 999px;
-    background: hsla(var(--zen-surface-elevated), 0.6);
-    border: 1px solid hsla(var(--zen-glass-border), 0.18);
+    background: hsla(var(--zen-surface-elevated), 0.5);
+    border: 1px solid hsla(var(--zen-glass-border), 0.15);
     color: hsl(var(--zen-text-bright));
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     backdrop-filter: blur(8px);
+    white-space: nowrap;
   }
 
   .zen-pill-btn:hover {
-    background: hsla(var(--zen-glow-primary), 0.15);
-    border-color: hsla(var(--zen-glow-primary), 0.35);
+    background: hsla(var(--zen-glow-primary), 0.12);
+    border-color: hsla(var(--zen-glow-primary), 0.3);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px hsla(var(--zen-glow-primary), 0.2);
+    box-shadow: 0 4px 16px hsla(var(--zen-glow-primary), 0.18);
   }
 
   .zen-pill-btn:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.97);
   }
 
   .zen-pill-btn-accent {
-    background: hsla(var(--zen-glow-secondary), 0.12);
-    border-color: hsla(var(--zen-glow-secondary), 0.25);
+    background: hsla(var(--zen-glow-secondary), 0.1);
+    border-color: hsla(var(--zen-glow-secondary), 0.2);
   }
 
   .zen-pill-btn-accent:hover {
-    background: hsla(var(--zen-glow-secondary), 0.22);
-    border-color: hsla(var(--zen-glow-secondary), 0.45);
-    box-shadow: 0 4px 16px hsla(var(--zen-glow-secondary), 0.2);
+    background: hsla(var(--zen-glow-secondary), 0.2);
+    border-color: hsla(var(--zen-glow-secondary), 0.4);
+    box-shadow: 0 4px 16px hsla(var(--zen-glow-secondary), 0.18);
+  }
+
+  /* Rainbow button */
+  .zen-pill-btn-rainbow {
+    background: linear-gradient(135deg,
+      hsla(0, 80%, 60%, 0.12),
+      hsla(55, 80%, 55%, 0.1),
+      hsla(130, 60%, 50%, 0.1),
+      hsla(200, 70%, 55%, 0.1),
+      hsla(280, 60%, 58%, 0.12));
+    border-color: hsla(280, 50%, 55%, 0.2);
+  }
+
+  .zen-pill-btn-rainbow:hover {
+    background: linear-gradient(135deg,
+      hsla(0, 85%, 60%, 0.22),
+      hsla(55, 85%, 55%, 0.18),
+      hsla(130, 65%, 50%, 0.18),
+      hsla(200, 75%, 55%, 0.18),
+      hsla(280, 65%, 58%, 0.22));
+    border-color: hsla(280, 55%, 55%, 0.4);
+    box-shadow:
+      0 4px 20px hsla(280, 50%, 55%, 0.2),
+      0 0 12px hsla(0, 70%, 55%, 0.1);
+  }
+
+  /* Small quality buttons */
+  .zen-pill-btn-sm {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: hsla(var(--zen-surface-elevated), 0.4);
+    border: 1px solid hsla(var(--zen-glass-border), 0.12);
+    color: hsl(var(--zen-text-dim));
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .zen-pill-btn-sm:hover {
+    color: hsl(var(--zen-text-bright));
+    background: hsla(var(--zen-surface-elevated), 0.7);
+  }
+
+  .zen-pill-btn-sm-active {
+    color: hsl(var(--zen-text-bright));
+    background: hsla(var(--zen-glow-primary), 0.15);
+    border-color: hsla(var(--zen-glow-primary), 0.3);
+    box-shadow: 0 0 8px hsla(var(--zen-glow-primary), 0.15);
+  }
+
+  /* Rainbow badge */
+  .zen-rainbow-badge {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg,
+      hsla(0, 80%, 60%, 0.2),
+      hsla(55, 80%, 55%, 0.15),
+      hsla(200, 70%, 55%, 0.15),
+      hsla(280, 60%, 58%, 0.2));
+    border: 1px solid hsla(280, 50%, 55%, 0.3);
+    color: hsl(var(--zen-text-bright));
+    animation: rainbow-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes rainbow-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px hsla(280, 50%, 55%, 0.3); }
+    50% { opacity: 0.7; box-shadow: 0 0 16px hsla(200, 60%, 55%, 0.4); }
+  }
+
+  /* Range slider styling */
+  .zen-range-input {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.5rem;
+    background: transparent;
+    cursor: pointer;
+    margin: -0.75rem 0 0 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .zen-range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: hsl(var(--zen-text-bright));
+    border: 2px solid hsl(var(--zen-glow-primary));
+    box-shadow: 0 0 8px hsla(var(--zen-glow-primary), 0.4);
+    cursor: grab;
+    transition: all 0.15s ease;
+  }
+
+  .zen-range-input::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 14px hsla(var(--zen-glow-primary), 0.6);
+  }
+
+  .zen-range-input::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+  }
+
+  .zen-range-input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: hsl(var(--zen-text-bright));
+    border: 2px solid hsl(var(--zen-glow-primary));
+    box-shadow: 0 0 8px hsla(var(--zen-glow-primary), 0.4);
+    cursor: grab;
+  }
+
+  .zen-range-input::-webkit-slider-runnable-track {
+    height: 0;
+  }
+
+  .zen-range-input::-moz-range-track {
+    height: 0;
+    background: transparent;
   }
 }
