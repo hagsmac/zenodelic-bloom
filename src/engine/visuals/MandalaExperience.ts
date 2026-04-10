@@ -88,8 +88,8 @@ export class MandalaExperience {
     this.pipeline.bloomKernel = 64;
     this.pipeline.chromaticAberrationEnabled = true;
     this.pipeline.chromaticAberration.aberrationAmount = 8;
-    this.pipeline.vignetteEnabled = true;
-    this.pipeline.vignetteWeight = 1.8;
+    this.pipeline.imageProcessing.vignetteEnabled = true;
+    this.pipeline.imageProcessing.vignetteWeight = 1.8;
     this.pipeline.imageProcessingEnabled = true;
     this.pipeline.imageProcessing.contrast = 1.12;
     this.pipeline.imageProcessing.exposure = 1.0;
@@ -123,15 +123,15 @@ export class MandalaExperience {
     this.quality = tier;
     if (tier === "high") {
       this.pipeline.samples = 2; this.pipeline.chromaticAberrationEnabled = true;
-      this.pipeline.chromaticAberration.aberrationAmount = 8; this.pipeline.vignetteWeight = 1.8;
+      this.pipeline.chromaticAberration.aberrationAmount = 8; this.pipeline.imageProcessing.vignetteWeight = 1.8;
       this.pipeline.bloomWeight = 0.35; this.glow.intensity = 0.85; this.dust.emitRate = 150;
     } else if (tier === "medium") {
       this.pipeline.samples = 1; this.pipeline.chromaticAberrationEnabled = true;
-      this.pipeline.chromaticAberration.aberrationAmount = 4; this.pipeline.vignetteWeight = 1.55;
+      this.pipeline.chromaticAberration.aberrationAmount = 4; this.pipeline.imageProcessing.vignetteWeight = 1.55;
       this.pipeline.bloomWeight = 0.28; this.glow.intensity = 0.6; this.dust.emitRate = 85;
     } else {
       this.pipeline.samples = 1; this.pipeline.chromaticAberrationEnabled = false;
-      this.pipeline.vignetteWeight = 1.2; this.pipeline.bloomWeight = 0.18; this.glow.intensity = 0.35; this.dust.emitRate = 45;
+      this.pipeline.imageProcessing.vignetteWeight = 1.2; this.pipeline.bloomWeight = 0.18; this.glow.intensity = 0.35; this.dust.emitRate = 45;
     }
   }
 
@@ -187,7 +187,7 @@ export class MandalaExperience {
     this.pipeline.bloomThreshold = 0.42 - state.pulse * 0.04;
     this.pipeline.bloomWeight = this.quality === "high" ? 0.3 + state.bloom * 0.1
       : this.quality === "medium" ? 0.24 + state.bloom * 0.08 : 0.16 + state.bloom * 0.05;
-    this.pipeline.vignetteWeight = 1.25 + state.tension * 0.5;
+    this.pipeline.imageProcessing.vignetteWeight = 1.25 + state.tension * 0.5;
     if (this.pipeline.chromaticAberrationEnabled) {
       this.pipeline.chromaticAberration.aberrationAmount = this.quality === "high" ? 5 + state.tension * 8 : 3 + state.tension * 4;
     }
